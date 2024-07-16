@@ -1,5 +1,7 @@
 from fastapi import status
 
+from fastzero.schemas import UserPublic
+
 
 def test_root_deve_retornar_status_code_200_ok_e_OK(client):
   
@@ -33,35 +35,19 @@ def test_read_users(client):
   response = client.get('/users/')
 
   assert response.status_code == status.HTTP_200_OK
-  assert response.json() == {
-    'users': [
-      {
-        'username': 'testusername',
-        'email'   : 'test@test.com',
-        'id': 1
-      }
-    ]
-  }
+  assert response.json() == {'users': []}
 
 
-def test_read_user_by_id(client):
-  response = client.get('/users/1')
+def test_read_users_with_user(client, user):
+  
+  user_schema = UserPublic.model_validate(user).model_dump()
+  response = client.get('/users/')
 
   assert response.status_code == status.HTTP_200_OK
-  assert response.json() == {
-    'username': 'testusername',
-    'email'   : 'test@test.com',
-    'id': 1
-  }
+  assert response.json() == {'users': [user_schema]}
 
 
-def test_read_user_by_id_status_404_not_found(client):
-  response = client.get('/users/29')
-
-  assert response.status_code == status.HTTP_404_NOT_FOUND
-  
-
-def test_update_user(client):
+def test_update_user(client, user):
   response = client.put(
     '/users/1',
     json={
@@ -79,6 +65,23 @@ def test_update_user(client):
   }
 
 
+def test_delete_user(client, user):
+  response = client.delete('/users/1')
+
+  assert response.status_code == status.HTTP_200_OK
+  assert response.json() == { 'message': 'user deleted!' }
+
+
+
+
+# TASK 
+
+def test_delete_user_status_404_not_found(client):
+  response = client.delete('/users/29')
+
+  assert response.status_code == status.HTTP_404_NOT_FOUND 
+
+
 def test_update_user_status_404_not_found(client):
   response = client.put(
     '/users/29',
@@ -93,14 +96,15 @@ def test_update_user_status_404_not_found(client):
   assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test_delete_user(client):
-  response = client.delete('/users/1')
+def test_read_user_by_id_status_404_not_found(client):
+  response = client.get('/users/29')
+
+  assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_read_user_by_id(client, user): #TASK corrigir
+  user_schema = UserPublic.model_validate(user).model_dump()
+  response = client.get('/users/1')
 
   assert response.status_code == status.HTTP_200_OK
-  assert response.json() == { 'message': 'user deleted!' }
-
-
-def test_delete_user_status_404_not_found(client):
-  response = client.delete('/users/29')
-
-  assert response.status_code == status.HTTP_404_NOT_FOUND 
+  assert response.json() == user_schema

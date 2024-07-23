@@ -1,6 +1,6 @@
 from pwdlib import PasswordHash
 from jwt import decode, encode
-from jwt.exceptions import PyJWTError
+from jwt.exceptions import PyJWTError, ExpiredSignatureError
 
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -59,8 +59,12 @@ def get_current_user(
     if not username:
       raise credentials_exception
       
+  except ExpiredSignatureError:
+    raise credentials_exception
+    
   except PyJWTError:
     raise credentials_exception
+    
     
   user = session.scalar(select(User).where(User.email == username))
 

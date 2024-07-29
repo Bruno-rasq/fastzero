@@ -1,11 +1,12 @@
 import pytest
 import factory
+import factory.fuzzy
 
 from fastapi.testclient import TestClient
 
 from fastzero.app import app
 from fastzero.database import get_session
-from fastzero.models import table_registry, User
+from fastzero.models import Todo, TodoState, table_registry, User
 from fastzero.security import get_password_hash
 
 from sqlalchemy import create_engine
@@ -22,6 +23,15 @@ class UserFactory(factory.Factory):
   email    = factory.LazyAttribute(lambda obj: f'{obj.username}@test.com')
   password = factory.LazyAttribute(lambda obj: f'{obj.username}+senha')
 
+
+class TodoFactory(factory.Factory):
+  class Meta:
+    model = Todo
+
+  title = factory.Faker('text')
+  description = factory.Faker('text')
+  state = factory.fuzzy.FuzzyChoice(TodoState)
+  user_id = 1
 
 @pytest.fixture()
 def client(session):
